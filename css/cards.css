@@ -13,9 +13,10 @@ body {
     font-size: 1.5em;
 }
 .table {
-    overflow: hidden;
     margin: 0 auto;
     width: 73em;
+    float: right;
+    clear: both;
 }
 .table .burnt,
 .table .discard,
@@ -24,6 +25,15 @@ body {
 }
 .table .burnt {
     margin-right: 12em;
+}
+
+.new-game {
+    background: #C7254E;
+    color: #fff;
+    border: 0;
+    border-radius: 1em;
+    box-shadow: 1px 1px 5px #000;
+    text-shadow: 1px 1px 5px #000;
 }
 
 .card {
@@ -139,7 +149,6 @@ body {
 .card[data-card-id="R"] { background-image: none; }
 
 .card.face-down {
-    /*background: url(http://i.imgur.com/S65rvhy.png) no-repeat .5em .5em;*/
     background: #fff url(http://i.imgur.com/yxdMjPo.png) no-repeat 1em 1em;
     background-size: 14em 23em;
 }
@@ -254,6 +263,10 @@ body {
 .pile .card:nth-child(99) { top: -49px; left: 49px; transform: rotate(1deg); }
 .pile .card:nth-child(100) { top: -50px; left: 50px; }
 
+.players {
+    clear: both;
+}
+
 .player {
     overflow: hidden;
     width: 50%;
@@ -321,19 +334,39 @@ body {
     margin-right: -12em;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1280px) {
     body {
         font-size: 7px;
     }
+    .table {
+        margin: 2em;
+    }
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1023px) {
     body {
         font-size: 6px;
     }
+}
 
+@media screen and (max-width: 767px) {
+    body {
+        font-size: 5px;
+    }
     .table {
-        float: right;
+        margin: 3em;
+    }
+}
+
+@media screen and (max-width: 567px) {
+    body {
+        font-size: 4px;
+    }
+    .table {
+        margin-top: 35em;
+    }
+    .player .pile {
+        width: calc(100vw / 10);
     }
 }
 

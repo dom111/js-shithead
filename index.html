@@ -114,7 +114,7 @@
             });
         };
 
-        $(document).on('click touchend', '.player .hand .card', function() {
+        $(document).on('click', '.player .hand .card', function() {
             if (!$(this).hasClass('face-down')) {
                 $(this).toggleClass('chosen');
             }
