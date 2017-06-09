@@ -22,7 +22,8 @@
                 (this can only be countered by another joker or a 10)</li>
         </ul>
 
-        <p>Click/tap to select a card and double click/two finger tap to play.<p>
+        <p class="no-touch">Click to select a card and double click to play it.<p>
+        <p class="touch">Tap to select a card and two finger tap to play it.<p>
 
         <div class="buttons">
             <button class="new-game">New Game</button>
@@ -123,6 +124,10 @@
         $(window).on('touchmove', function(event) {
             event.preventDefault();
         });
+
+        if ('ontouchstart' in document) {
+            $('html').addClass('has-touch');
+        }
     </script>
     <div class="preload" style="display: none;">
         <img src="http://i.imgur.com/Hfq7acq.png"/>

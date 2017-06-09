@@ -6,6 +6,15 @@ body {
     text-align: center;
 }
 
+.touch,
+.has-touch .no-touch {
+    display: none;
+}
+
+.has-touch .touch {
+    display: block;
+}
+
 .rules {
     position: absolute;
     left: 2em;
@@ -355,6 +364,10 @@ body {
     }
     .table {
         margin: 3em;
+    }
+
+    .player .pile {
+        width: calc(100vw / 8);
     }
 }
 
