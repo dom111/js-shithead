@@ -22,8 +22,8 @@
                 (this can only be countered by another joker or a 10)</li>
         </ul>
 
-        <p class="no-touch">Click to select a card and double click to play it.<p>
-        <p class="touch">Tap to select a card and two finger tap to play it.<p>
+        <p class="no-touch">Left click to select a card and right click to play it.</p>
+        <p class="touch">Tap to select a card and two finger tap to play it.</p>
 
         <div class="buttons">
             <button class="new-game">New Game</button>
@@ -48,9 +48,6 @@
         $('.new-game').on('click', function() {
             newGame();
         });
-
-        // hack to get touch to act like hover
-        $('body').bind('touchstart', function() {});
 
         $('.discard, .burnt').on('click', function() {
             $('body').append(
@@ -114,16 +111,6 @@
                 }).join('') + '</div></div>'));
             });
         };
-
-        $(document).on('click', '.player .hand .card', function() {
-            if (!$(this).hasClass('face-down')) {
-                $(this).toggleClass('chosen');
-            }
-        });
-
-        $(window).on('touchmove', function(event) {
-            event.preventDefault();
-        });
 
         if ('ontouchstart' in document) {
             $('html').addClass('has-touch');

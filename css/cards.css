@@ -277,7 +277,6 @@ body {
 }
 
 .player {
-    overflow: hidden;
     width: 50%;
     float: left;
 }
@@ -300,7 +299,7 @@ body {
     min-width: 16em;
     height: 25em;
     margin: 2em 2em 1em 1em;
-    padding-right: 12em; /* to counteract the margin-right: -12em */
+    padding-right: 12em;
 }
 .hand .card {
     float: left;
@@ -321,13 +320,14 @@ body {
 }
 
 .overlay {
-    height: 100%;
-    width: 100%;
+    height: 100vh;
+    width: 100vw;
     position: absolute;
     background: rgba(0,0,0,.4);
     top: 0px;
     left: 0px;
     text-align: center;
+    z-index: 2;
 }
 
 .overlay .hand {

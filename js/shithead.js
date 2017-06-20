@@ -13,7 +13,7 @@ var Shithead = function(args) {
         {
             cards: ['2C', '2D', '2H', '2S'],
             name: 'Reset',
-            value: 13,
+            value: 14,
             check: function(game, player, card, played) {
                 return true;
             }
@@ -21,7 +21,7 @@ var Shithead = function(args) {
         {
             cards: ['4C', '4D', '4H', '4S'],
             name: 'See through',
-            value: 16,
+            value: 18,
             check: function(game, player, card, played) {
                 var previous = game.discard.before(card);
 
@@ -36,10 +36,25 @@ var Shithead = function(args) {
                 }
             }
         },
+        // {
+        //     cards: ['7C', '7D', '7H', '7S'],
+        //     name: 'Lower than 7',
+        //     value: 7,
+        //     check: function(game, player, card, played) {
+        //         // return [2, 3, 4, 5, 6].map(function(n) {
+        //         //     return ['C', 'D', 'H', 'S'].map(function(s) {
+        //         //         return n + s;
+        //         //     });
+        //         // }).reduce(function(a, b) {
+        //         //     return a.concat(b);
+        //         // }).concat(['R']).includes(played.id);
+        //         return ['R', '2C', '2D', '2H', '2S', '3C', '3D', '3H', '3S', '4C', '4D', '4H', '4S', '5C', '5D', '5H', '5S', '6C', '6D', '6H', '6S'].includes(played.id);
+        //     }
+        // },
         {
             cards: ['8C', '8D', '8H', '8S'],
             name: 'Miss a go',
-            value: 16,
+            value: 17,
             check: function(game, player, card, played) {
                 var previous = game.discard.before(card);
 
@@ -108,7 +123,7 @@ var Shithead = function(args) {
 
     // Aces are high
     if (args.acesHigh || true) {
-        Card.Definitions['AC'].value = Card.Definitions['AD'].value = Card.Definitions['AH'].value = Card.Definitions['AS'].value = 14;
+        Card.Definitions['AC'].value = Card.Definitions['AD'].value = Card.Definitions['AH'].value = Card.Definitions['AS'].value = 15;
     }
 
     this.turn = 0;
@@ -192,19 +207,20 @@ Shithead.prototype.play = function(player, played) {
         return self.beats(toBeat, card);
     });
 
-    played.peek().forEach(function(card) {
-        if (card.special) {
-            if (card.special.action) {
-                card.special.action(game, player, card, played);
-            }
-        }
-
-        card.played = game.turn;
-    });
-
-    this.discard.push(played);
-
     if (success) {
+        played.peek().forEach(function(card) {
+            if (card.special) {
+                if (card.special.action) {
+                    card.special.action(game, player, card, played);
+                }
+            }
+
+            card.played = game.turn;
+            card.player = player;
+        });
+
+        this.discard.push(played);
+
         if ((this.discard.length >= 4) && this.discard.peek(4).map(function(card) {
             return card.value;
         }).every(function(value) {
@@ -236,7 +252,7 @@ Shithead.prototype.play = function(player, played) {
         }
     }
     else {
-        player.hand.push(this.discard.empty());
+        player.hand.push(this.discard.empty()).push(played);
         player.play();
 
         return;
@@ -256,8 +272,11 @@ Shithead.prototype.beats = function(toBeat, toCheck) {
         if (toBeat.special.check) {
             return toBeat.special.check(game, null, toBeat, toCheck);
         }
+        else if (toCheck.special) {
+            return true;
+        }
     }
-    if (toCheck.special) {
+    else if (toCheck.special) {
         return true;
     }
 
@@ -349,11 +368,35 @@ Shithead.Player.Human.prototype.play = function() {
 
     this.player.game.event.emit('redraw');
 
+    $(document).on('contextmenu', function(evt) {
+        evt.preventDefault();
+    });
+
+    $(document).off('touchstart.shithead-select-card mousedown.shithead-select-card').on('touchstart.shithead-select-card mousedown.shithead-select-card', '.player .hand .card', function(evt) {
+        if (evt.type !== 'touchstart' && ('ontouchstart' in document || evt.which !== 1)) {
+            return;
+        }
+
+        if (!$(this).hasClass('face-down')) {
+            $(this).toggleClass('chosen');
+        }
+    });
+
     // choose a card to play
-    $(document).off('touchstart dblclick').on('touchstart dblclick', function(evt) {
+    $(document).off('touchstart.shithead-play-card mousedown.shithead-play-card').on('touchstart.shithead-play-card mousedown.shithead-play-card', function(evt) {
         if (evt.originalEvent instanceof TouchEvent) {
             if (evt.originalEvent.touches.length != 2) {
                 return;
+            }
+        }
+        else {
+            if ('ontouchstart' in document) {
+                return;
+            }
+            else {
+                if (evt.which !== 3) {
+                    return;
+                }
             }
         }
 
@@ -370,7 +413,7 @@ Shithead.Player.Human.prototype.play = function() {
             return card;
         });
 
-        $(document).off('touchstart dblclick');
+        $(document).off('touchstart.shithead-play-card mousedown.shithead-play-card');
         self.player.game.event.emit('played', self.player, playing);
     });
 };
