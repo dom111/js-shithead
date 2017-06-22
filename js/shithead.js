@@ -24,16 +24,8 @@ var Shithead = function(args) {
             value: 18,
             check: function(game, player, card, played) {
                 var previous = game.discard.before(card);
-
-                if (!previous) {
-                    return true;
-                }
-                else if (previous.special && previous.special.check) {
-                    return previous.special.check(game, player, previous, played);
-                }
-                else {
-                    return previous.value <= played.value;
-                }
+                
+                return game.beats(previous, played);
             }
         },
         // {
@@ -57,16 +49,8 @@ var Shithead = function(args) {
             value: 17,
             check: function(game, player, card, played) {
                 var previous = game.discard.before(card);
-
-                if (!previous) {
-                    return true;
-                }
-                else if (previous.special && previous.special.check) {
-                    return previous.special.check(game, player, previous, played);
-                }
-                else {
-                    return previous.value <= played.value;
-                }
+                
+                return game.beats(previous, played);
             },
             action: function(game, player, card, played) {
                 return game.turn++;
