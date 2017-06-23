@@ -23,9 +23,7 @@ var Shithead = function(args) {
             name: 'See through',
             value: 18,
             check: function(game, player, card, played) {
-                var previous = game.discard.before(card);
-                
-                return game.beats(previous, played);
+                return game.beats(game.discard.before(card), played);
             }
         },
         // {
@@ -48,9 +46,7 @@ var Shithead = function(args) {
             name: 'Miss a go',
             value: 17,
             check: function(game, player, card, played) {
-                var previous = game.discard.before(card);
-                
-                return game.beats(previous, played);
+                return game.beats(game.discard.before(card), played);
             },
             action: function(game, player, card, played) {
                 return game.turn++;
@@ -61,21 +57,17 @@ var Shithead = function(args) {
             name: 'Burn the deck',
             value: 21,
             action: function(game, player, card, played) {
-                game.burnt.push(game.discard.empty());
-                game.burnt.push(played.remove(card));
+                game.burnt.push(game.discard.push(played).empty());
             }
         },
         {
             cards: ['J1', 'J2'],
             name: 'Give them to someone',
             value: 20,
+            played: function(game, player, card, played) {
+                game.burnt.push(game.discard.remove(card));
+            },
             check: function(game, player, card, played) {
-                if (card.played && (game.turn != card.played)) {
-                    if (game.discard.has(card)) {
-                        game.burnt.push(game.discard.remove(card));
-                    }
-                }
-
                 return ['J1', 'J2', 'TC', 'TD', 'TH', 'TS'].includes(played.id);
             },
             action: function(game, player, card, played) {
@@ -188,8 +180,12 @@ Shithead.prototype.play = function(player, played) {
     }
 
     success = played.peek().every(function(card) {
-        return self.beats(toBeat, card);
+        return self.beats(toBeat, card, true);
     });
+
+    if (toBeat.special && toBeat.special.played) {
+        toBeat.special.played(game, player, toBeat, played);
+    }
 
     if (success) {
         played.peek().forEach(function(card) {
@@ -228,6 +224,10 @@ Shithead.prototype.play = function(player, played) {
                     else {
                         this.winner = player;
                         this.event.emit('game-over', player);
+                        _debug(player + ' wins!');
+                        _debug('');
+                        _debug(' --- ');
+                        _debug('');
 
                         return;
                     }
@@ -248,23 +248,52 @@ Shithead.prototype.play = function(player, played) {
     }, 200);
 };
 
-Shithead.prototype.beats = function(toBeat, toCheck) {
-    var valueToBeat = toBeat.value,
+Shithead.prototype.beats = function(toBeat, toCheck, debug) {
+    var toBeat = toBeat || { value: -1 },
+    valueToBeat = toBeat.value,
     valueToCheck = toCheck.value;
 
     if (toBeat.special) {
         if (toBeat.special.check) {
-            return toBeat.special.check(game, null, toBeat, toCheck);
+            if (toBeat.special.check(game, null, toBeat, toCheck)) {
+                if (debug) {
+                    _debug(toCheck + ' beats ' + toBeat);
+                }
+                return true;
+            }
+            else {
+                if (debug) {
+                    _debug(toCheck + ' loses against ' + toBeat);
+                }
+                return false;
+            }
         }
         else if (toCheck.special) {
+            if (debug) {
+                _debug(toCheck + ' beats ' + toBeat);
+            }
             return true;
         }
     }
     else if (toCheck.special) {
+        if (debug) {
+            _debug(toCheck + ' beats ' + toBeat);
+        }
         return true;
     }
 
-    return valueToBeat <= valueToCheck;
+    if (valueToBeat <= valueToCheck) {
+        if (debug) {
+            _debug(toCheck + ' beats ' + toBeat);
+        }
+        return true;
+    }
+    else {
+        if (debug) {
+            _debug(toCheck + ' loses against ' + toBeat);
+        }
+        return false;
+    }
 };
 
 Shithead.Player = function(args, game) {
@@ -360,6 +389,11 @@ Shithead.Player.Human.prototype.play = function() {
         if (evt.type !== 'touchstart' && ('ontouchstart' in document || evt.which !== 1)) {
             return;
         }
+        else if (evt.type === 'touchstart') {
+            if (evt.originalEvent.touches.length > 1) {
+                return;
+            }
+        }
 
         if (!$(this).hasClass('face-down')) {
             $(this).toggleClass('chosen');
@@ -368,7 +402,7 @@ Shithead.Player.Human.prototype.play = function() {
 
     // choose a card to play
     $(document).off('touchstart.shithead-play-card mousedown.shithead-play-card').on('touchstart.shithead-play-card mousedown.shithead-play-card', function(evt) {
-        if (evt.originalEvent instanceof TouchEvent) {
+        if (evt.type === 'touchstart') {
             if (evt.originalEvent.touches.length != 2) {
                 return;
             }
@@ -401,3 +435,18 @@ Shithead.Player.Human.prototype.play = function() {
         self.player.game.event.emit('played', self.player, playing);
     });
 };
+
+var _debug = function(s) {
+    $('<li>').html(s).appendTo('#debug');
+    $('#debug').scrollTop($('#debug').prop('scrollHeight'));
+};
+
+$(document).on('touchstart.showDebug', function(evt) {
+    if (evt.originalEvent.touches.length >= 4) {
+        $('#debug').toggleClass('hidden');
+    }
+});
+
+$(document).on('keydown', function() {
+    $('#debug').toggleClass('hidden');
+});

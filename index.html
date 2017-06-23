@@ -36,6 +36,7 @@
         <div class="deck pile"></div>
     </div>
     <div class="players"></div>
+    <ul id="debug" class="hidden"></ul>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script src="js/EventEmitter.min.js"></script>
@@ -73,10 +74,16 @@
             game.currentPlayer.play();
 
             game.event.on('game-over', function(player) {
-                $('body').append('<div class="pyro" data-player-name="' + player.name + '"><div class="before"></div><div class="after"></div></div>');
-                $('.pyro').on('click', function() {
-                    $('.pyro').remove();
-                });
+                if (player.type === 'Human') {
+                    $('body').append('<div class="pyro" data-player-name="' + player.name + '"><div class="before"></div><div class="after"></div></div>');
+                    $('.pyro').on('click', function() {
+                        $('.pyro').remove();
+                    });
+                }
+                else {
+                    // TODO: flip the table, throw the cards, etc
+                    alert('Computer won! 😩');
+                }
             });
         };
 
