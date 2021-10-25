@@ -1,0 +1,31 @@
+{
+  "name": "js-shithead",
+  "version": "2.0.0",
+  "description": "A TypeScript implementation of shithead",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "npm run prettier:format && npm run build:esbuild",
+    "build:watch": "npm run prettier:format && npm run build:esbuild:watch",
+    "build:esbuild": "node esbuild.js prod",
+    "build:esbuild:watch": "node esbuild.js dev watch",
+    "prettier:check": "prettier --config .prettierrc 'src/**/*' esbuild.js",
+    "prettier:format": "prettier --config .prettierrc 'src/**/*' esbuild.js --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dom111/js-shithead.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dom111/js-shithead/issues"
+  },
+  "homepage": "https://github.com/dom111/js-shithead#readme",
+  "dependencies": {
+    "@civ-clone/core-registry": "^0.1.0",
+    "@civ-clone/core-rule": "^0.1.0",
+    "esbuild": "^0.13.8",
+    "esbuild-sass-plugin": "^1.6.3",
+    "prettier": "^2.4.1"
+  }
+}

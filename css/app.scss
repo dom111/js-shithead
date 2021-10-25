@@ -1,0 +1,730 @@
+@use "sass:math";
+
+body {
+  margin: 0;
+  background: url(../img/table.jpg);
+  font-size: 9px;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.touch,
+.has-touch .no-touch {
+  display: none;
+}
+
+.has-touch .touch {
+  display: block;
+}
+
+.rules {
+  position: absolute;
+  left: 2em;
+  text-align: left;
+  font-size: 1.5em;
+}
+
+.table {
+  margin: 0 auto;
+  width: 73em;
+  float: right;
+  clear: both;
+
+  .burnt,
+  .discard,
+  .deck {
+    float: left;
+  }
+
+  .burnt {
+    margin-right: 12em;
+  }
+}
+
+.new-game {
+  background: #c7254e;
+  color: #fff;
+  border: 0;
+  border-radius: 1em;
+  box-shadow: 1px 1px 5px #000;
+  text-shadow: 1px 1px 5px #000;
+}
+
+%card {
+  display: block;
+  width: 16em;
+  height: 25em;
+  border-radius: 1em;
+  box-shadow: 0.1em 0.1em 0.5em rgba(0, 0, 0, 0.4);
+  padding: 1em;
+  box-sizing: border-box;
+  font-family: sans-serif;
+  transition: all 0.5s ease-in-out, 0.1s margin;
+  position: relative;
+  background: #fff none no-repeat 1em 1em;
+  background-size: 14em 23em;
+  transform-style: preserve-3d;
+}
+
+.card {
+  @extend %card;
+
+  &:hover {
+    z-index: 1;
+    margin: -1em 0 0 1em;
+  }
+
+  &.chosen {
+    z-index: 1;
+    margin: -1em 0 0 1em;
+    box-shadow: 0.1em 0.1em 3em rgba(255, 192, 0, 1);
+  }
+
+  .burnt &:hover,
+  .discard &:hover,
+  .down &:hover,
+  &.face-down:hover {
+    z-index: 0;
+    margin: 0;
+  }
+
+  // Main cards
+  @each $card in 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'
+  {
+    @each $suit in 'C', 'D', 'H', 'S' {
+      &[data-card-id='#{$card}#{$suit}'] {
+        background-image: url('../img/#{$card}#{$suit}.png');
+      }
+    }
+  }
+
+  // Jokes
+  @for $n from 1 through 2 {
+    &[data-card-id='*#{$n}'] {
+      background-image: url('../img/J#{$n}.png');
+    }
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(../img/back.png);
+    transform: rotateY(180deg);
+
+    @extend %card;
+  }
+
+  &.face-down {
+    transform: rotateY(180deg);
+  }
+}
+
+.discard::before,
+.deck::before,
+.burnt::before {
+  font-size: 2em;
+  display: block;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  width: 8em;
+  height: 12.5em;
+  border-radius: 1em;
+  box-sizing: border-box;
+  padding-top: 5.5em;
+}
+
+.discard::before {
+  content: 'Discard pile';
+}
+.deck::before {
+  content: 'Draw pile';
+}
+.burnt::before {
+  content: 'Burnt';
+}
+
+.pile {
+  position: relative;
+  width: 18em;
+  height: 27em;
+  margin: 4em 2em 1em 1em;
+
+  .card {
+    position: absolute;
+  }
+
+  @for $i from 1 through 100 {
+    .card:nth-child(#{$i}) {
+      top: #{math.div($i, -2)}px;
+      left: #{math.div($i, 2)}px;
+      transform: rotate((random(3deg) - 2deg));
+    }
+    .card.face-down:nth-child(#{$i}) {
+      transform: rotateY(180deg) rotate((random(3deg) - 2deg));
+    }
+  }
+}
+
+.players {
+  clear: both;
+}
+
+.player {
+  width: 50%;
+  float: left;
+
+  &::before {
+    content: attr(data-player-name) ' (' attr(data-player-type) ')';
+    font-size: 2em;
+    width: 100%;
+    display: block;
+  }
+
+  &.current::before {
+    color: #f00;
+    font-weight: bold;
+  }
+
+  .down {
+    float: left;
+  }
+}
+
+.hand {
+  clear: both;
+  min-width: 16em;
+  height: 25em;
+  margin: 2em 2em 1em 1em;
+  padding-right: 12em;
+
+  .card {
+    float: left;
+    margin-right: -12em;
+    margin-bottom: 2em;
+  }
+
+  .card:hover,
+  .player & .card.chosen {
+    margin-right: 1em;
+  }
+
+  .card.face-down:hover {
+    margin-right: -12em;
+  }
+
+  .player & .card:hover + .card.chosen,
+  .player & .card.chosen + .card:hover,
+  .player & .card.chosen + .card.chosen {
+    margin-left: -12em;
+  }
+}
+
+.overlay {
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.4);
+  top: 0;
+  left: 0;
+  text-align: center;
+  z-index: 2;
+
+  .hand {
+    margin: 10em auto;
+    display: inline-block;
+
+    &::before {
+      display: none;
+    }
+
+    .card:last-child:hover {
+      margin-right: -12em;
+    }
+  }
+}
+
+@media screen and (max-width: 1280px) {
+  body {
+    font-size: 7px;
+  }
+
+  .table {
+    margin: 2em;
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  body {
+    font-size: 6px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  body {
+    font-size: 5px;
+  }
+
+  .table {
+    margin: 3em;
+  }
+
+  .player .pile {
+    width: calc(100vw / 8);
+  }
+}
+
+@media screen and (max-width: 567px) {
+  body {
+    font-size: 4px;
+  }
+  .table {
+    margin-top: 35em;
+  }
+  .player .pile {
+    width: calc(100vw / 10);
+  }
+}
+
+/* fireworks! From: https://codepen.io/yshlin/pen/ylDEk */
+.pyro {
+  background: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  &::before {
+    display: block;
+    color: #fff;
+    font-size: 3em;
+    text-shadow: 0 0 4px #fff;
+    content: 'Game over!';
+    top: 12em;
+    position: absolute;
+    width: 100%;
+  }
+
+  &::after {
+    color: #fff;
+    font-size: 2em;
+    text-shadow: 0 0 4px #fff;
+    content: attr(data-player-name) ' wins!';
+    position: absolute;
+    top: 20em;
+    left: 0;
+    width: 100%;
+  }
+
+  & > .before,
+  .pyro > .after {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    box-shadow: 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff, 0 0 #fff,
+      0 0 #fff, 0 0 #fff, 0 0 #fff;
+    -moz-animation: 1s bang ease-out infinite backwards,
+      1s gravity ease-in infinite backwards,
+      5s position linear infinite backwards;
+    -webkit-animation: 1s bang ease-out infinite backwards,
+      1s gravity ease-in infinite backwards,
+      5s position linear infinite backwards;
+    -o-animation: 1s bang ease-out infinite backwards,
+      1s gravity ease-in infinite backwards,
+      5s position linear infinite backwards;
+    -ms-animation: 1s bang ease-out infinite backwards,
+      1s gravity ease-in infinite backwards,
+      5s position linear infinite backwards;
+    animation: 1s bang ease-out infinite backwards,
+      1s gravity ease-in infinite backwards,
+      5s position linear infinite backwards;
+  }
+
+  & > .after {
+    -moz-animation-delay: 1.25s, 1.25s, 1.25s;
+    -webkit-animation-delay: 1.25s, 1.25s, 1.25s;
+    -o-animation-delay: 1.25s, 1.25s, 1.25s;
+    -ms-animation-delay: 1.25s, 1.25s, 1.25s;
+    animation-delay: 1.25s, 1.25s, 1.25s;
+    -moz-animation-duration: 1.25s, 1.25s, 6.25s;
+    -webkit-animation-duration: 1.25s, 1.25s, 6.25s;
+    -o-animation-duration: 1.25s, 1.25s, 6.25s;
+    -ms-animation-duration: 1.25s, 1.25s, 6.25s;
+    animation-duration: 1.25s, 1.25s, 6.25s;
+  }
+}
+
+@-webkit-keyframes bang {
+  to {
+    box-shadow: 152px 7.33333px #0dff00, 213px -311.66667px #9900ff,
+      222px -190.66667px #00ff84, -165px -226.66667px #ff0015,
+      -63px -66.66667px #a6ff00, -107px -93.66667px #00fbff,
+      175px -199.66667px #62ff00, 104px -204.66667px #3700ff,
+      -220px -246.66667px #00fbff, -125px -222.66667px #ff5500,
+      -14px 72.33333px #0033ff, 105px -400.66667px #0040ff,
+      200px 61.33333px #ff0400, -77px 50.33333px #00f7ff,
+      -160px -166.66667px #00eeff, 103px -298.66667px #0084ff,
+      -146px -343.66667px #00ff9d, -108px 43.33333px #00b7ff,
+      228px -269.66667px #0048ff, -191px 58.33333px #ff00a6,
+      134px -375.66667px #ffdd00, 221px -241.66667px #ff0011,
+      -223px -141.66667px #ffea00, 102px -26.66667px #ff4400,
+      147px -356.66667px #ff00d5, -59px -237.66667px #2fff00,
+      231px -292.66667px #00ff44, 221px -384.66667px #00ff5e,
+      -11px -210.66667px #ff7300, 147px -230.66667px #0009ff,
+      90px -56.66667px #e600ff, 108px -354.66667px #00ff04,
+      165px 13.33333px #5e00ff, 179px -106.66667px #33ff00,
+      100px 16.33333px #00ff2b, 242px -100.66667px #ff008c,
+      -248px -104.66667px #eeff00, 229px -157.66667px #d5ff00,
+      -24px -359.66667px #ff0059, 245px -106.66667px #80ff00,
+      -138px -98.66667px #ff00a2, -137px -271.66667px #2200ff,
+      147px 40.33333px #0011ff, 131px -413.66667px #ff001a,
+      195px -360.66667px #62ff00, -243px -368.66667px #0015ff,
+      -188px -275.66667px #ff00cc, 117px -306.66667px #ff0400,
+      -215px -69.66667px #00ffaa, -249px -366.66667px #ff0073,
+      159px -203.66667px #eaff00;
+  }
+}
+@-moz-keyframes bang {
+  to {
+    box-shadow: 152px 7.33333px #0dff00, 213px -311.66667px #9900ff,
+      222px -190.66667px #00ff84, -165px -226.66667px #ff0015,
+      -63px -66.66667px #a6ff00, -107px -93.66667px #00fbff,
+      175px -199.66667px #62ff00, 104px -204.66667px #3700ff,
+      -220px -246.66667px #00fbff, -125px -222.66667px #ff5500,
+      -14px 72.33333px #0033ff, 105px -400.66667px #0040ff,
+      200px 61.33333px #ff0400, -77px 50.33333px #00f7ff,
+      -160px -166.66667px #00eeff, 103px -298.66667px #0084ff,
+      -146px -343.66667px #00ff9d, -108px 43.33333px #00b7ff,
+      228px -269.66667px #0048ff, -191px 58.33333px #ff00a6,
+      134px -375.66667px #ffdd00, 221px -241.66667px #ff0011,
+      -223px -141.66667px #ffea00, 102px -26.66667px #ff4400,
+      147px -356.66667px #ff00d5, -59px -237.66667px #2fff00,
+      231px -292.66667px #00ff44, 221px -384.66667px #00ff5e,
+      -11px -210.66667px #ff7300, 147px -230.66667px #0009ff,
+      90px -56.66667px #e600ff, 108px -354.66667px #00ff04,
+      165px 13.33333px #5e00ff, 179px -106.66667px #33ff00,
+      100px 16.33333px #00ff2b, 242px -100.66667px #ff008c,
+      -248px -104.66667px #eeff00, 229px -157.66667px #d5ff00,
+      -24px -359.66667px #ff0059, 245px -106.66667px #80ff00,
+      -138px -98.66667px #ff00a2, -137px -271.66667px #2200ff,
+      147px 40.33333px #0011ff, 131px -413.66667px #ff001a,
+      195px -360.66667px #62ff00, -243px -368.66667px #0015ff,
+      -188px -275.66667px #ff00cc, 117px -306.66667px #ff0400,
+      -215px -69.66667px #00ffaa, -249px -366.66667px #ff0073,
+      159px -203.66667px #eaff00;
+  }
+}
+@-o-keyframes bang {
+  to {
+    box-shadow: 152px 7.33333px #0dff00, 213px -311.66667px #9900ff,
+      222px -190.66667px #00ff84, -165px -226.66667px #ff0015,
+      -63px -66.66667px #a6ff00, -107px -93.66667px #00fbff,
+      175px -199.66667px #62ff00, 104px -204.66667px #3700ff,
+      -220px -246.66667px #00fbff, -125px -222.66667px #ff5500,
+      -14px 72.33333px #0033ff, 105px -400.66667px #0040ff,
+      200px 61.33333px #ff0400, -77px 50.33333px #00f7ff,
+      -160px -166.66667px #00eeff, 103px -298.66667px #0084ff,
+      -146px -343.66667px #00ff9d, -108px 43.33333px #00b7ff,
+      228px -269.66667px #0048ff, -191px 58.33333px #ff00a6,
+      134px -375.66667px #ffdd00, 221px -241.66667px #ff0011,
+      -223px -141.66667px #ffea00, 102px -26.66667px #ff4400,
+      147px -356.66667px #ff00d5, -59px -237.66667px #2fff00,
+      231px -292.66667px #00ff44, 221px -384.66667px #00ff5e,
+      -11px -210.66667px #ff7300, 147px -230.66667px #0009ff,
+      90px -56.66667px #e600ff, 108px -354.66667px #00ff04,
+      165px 13.33333px #5e00ff, 179px -106.66667px #33ff00,
+      100px 16.33333px #00ff2b, 242px -100.66667px #ff008c,
+      -248px -104.66667px #eeff00, 229px -157.66667px #d5ff00,
+      -24px -359.66667px #ff0059, 245px -106.66667px #80ff00,
+      -138px -98.66667px #ff00a2, -137px -271.66667px #2200ff,
+      147px 40.33333px #0011ff, 131px -413.66667px #ff001a,
+      195px -360.66667px #62ff00, -243px -368.66667px #0015ff,
+      -188px -275.66667px #ff00cc, 117px -306.66667px #ff0400,
+      -215px -69.66667px #00ffaa, -249px -366.66667px #ff0073,
+      159px -203.66667px #eaff00;
+  }
+}
+@-ms-keyframes bang {
+  to {
+    box-shadow: 152px 7.33333px #0dff00, 213px -311.66667px #9900ff,
+      222px -190.66667px #00ff84, -165px -226.66667px #ff0015,
+      -63px -66.66667px #a6ff00, -107px -93.66667px #00fbff,
+      175px -199.66667px #62ff00, 104px -204.66667px #3700ff,
+      -220px -246.66667px #00fbff, -125px -222.66667px #ff5500,
+      -14px 72.33333px #0033ff, 105px -400.66667px #0040ff,
+      200px 61.33333px #ff0400, -77px 50.33333px #00f7ff,
+      -160px -166.66667px #00eeff, 103px -298.66667px #0084ff,
+      -146px -343.66667px #00ff9d, -108px 43.33333px #00b7ff,
+      228px -269.66667px #0048ff, -191px 58.33333px #ff00a6,
+      134px -375.66667px #ffdd00, 221px -241.66667px #ff0011,
+      -223px -141.66667px #ffea00, 102px -26.66667px #ff4400,
+      147px -356.66667px #ff00d5, -59px -237.66667px #2fff00,
+      231px -292.66667px #00ff44, 221px -384.66667px #00ff5e,
+      -11px -210.66667px #ff7300, 147px -230.66667px #0009ff,
+      90px -56.66667px #e600ff, 108px -354.66667px #00ff04,
+      165px 13.33333px #5e00ff, 179px -106.66667px #33ff00,
+      100px 16.33333px #00ff2b, 242px -100.66667px #ff008c,
+      -248px -104.66667px #eeff00, 229px -157.66667px #d5ff00,
+      -24px -359.66667px #ff0059, 245px -106.66667px #80ff00,
+      -138px -98.66667px #ff00a2, -137px -271.66667px #2200ff,
+      147px 40.33333px #0011ff, 131px -413.66667px #ff001a,
+      195px -360.66667px #62ff00, -243px -368.66667px #0015ff,
+      -188px -275.66667px #ff00cc, 117px -306.66667px #ff0400,
+      -215px -69.66667px #00ffaa, -249px -366.66667px #ff0073,
+      159px -203.66667px #eaff00;
+  }
+}
+@keyframes bang {
+  to {
+    box-shadow: 152px 7.33333px #0dff00, 213px -311.66667px #9900ff,
+      222px -190.66667px #00ff84, -165px -226.66667px #ff0015,
+      -63px -66.66667px #a6ff00, -107px -93.66667px #00fbff,
+      175px -199.66667px #62ff00, 104px -204.66667px #3700ff,
+      -220px -246.66667px #00fbff, -125px -222.66667px #ff5500,
+      -14px 72.33333px #0033ff, 105px -400.66667px #0040ff,
+      200px 61.33333px #ff0400, -77px 50.33333px #00f7ff,
+      -160px -166.66667px #00eeff, 103px -298.66667px #0084ff,
+      -146px -343.66667px #00ff9d, -108px 43.33333px #00b7ff,
+      228px -269.66667px #0048ff, -191px 58.33333px #ff00a6,
+      134px -375.66667px #ffdd00, 221px -241.66667px #ff0011,
+      -223px -141.66667px #ffea00, 102px -26.66667px #ff4400,
+      147px -356.66667px #ff00d5, -59px -237.66667px #2fff00,
+      231px -292.66667px #00ff44, 221px -384.66667px #00ff5e,
+      -11px -210.66667px #ff7300, 147px -230.66667px #0009ff,
+      90px -56.66667px #e600ff, 108px -354.66667px #00ff04,
+      165px 13.33333px #5e00ff, 179px -106.66667px #33ff00,
+      100px 16.33333px #00ff2b, 242px -100.66667px #ff008c,
+      -248px -104.66667px #eeff00, 229px -157.66667px #d5ff00,
+      -24px -359.66667px #ff0059, 245px -106.66667px #80ff00,
+      -138px -98.66667px #ff00a2, -137px -271.66667px #2200ff,
+      147px 40.33333px #0011ff, 131px -413.66667px #ff001a,
+      195px -360.66667px #62ff00, -243px -368.66667px #0015ff,
+      -188px -275.66667px #ff00cc, 117px -306.66667px #ff0400,
+      -215px -69.66667px #00ffaa, -249px -366.66667px #ff0073,
+      159px -203.66667px #eaff00;
+  }
+}
+@-webkit-keyframes gravity {
+  to {
+    transform: translateY(200px);
+    -moz-transform: translateY(200px);
+    -webkit-transform: translateY(200px);
+    -o-transform: translateY(200px);
+    -ms-transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@-moz-keyframes gravity {
+  to {
+    transform: translateY(200px);
+    -moz-transform: translateY(200px);
+    -webkit-transform: translateY(200px);
+    -o-transform: translateY(200px);
+    -ms-transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@-o-keyframes gravity {
+  to {
+    transform: translateY(200px);
+    -moz-transform: translateY(200px);
+    -webkit-transform: translateY(200px);
+    -o-transform: translateY(200px);
+    -ms-transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@-ms-keyframes gravity {
+  to {
+    transform: translateY(200px);
+    -moz-transform: translateY(200px);
+    -webkit-transform: translateY(200px);
+    -o-transform: translateY(200px);
+    -ms-transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@keyframes gravity {
+  to {
+    transform: translateY(200px);
+    -moz-transform: translateY(200px);
+    -webkit-transform: translateY(200px);
+    -o-transform: translateY(200px);
+    -ms-transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@-webkit-keyframes position {
+  0%,
+  19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%,
+  39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%,
+  59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%,
+  79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%,
+  99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+@-moz-keyframes position {
+  0%,
+  19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%,
+  39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%,
+  59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%,
+  79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%,
+  99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+@-o-keyframes position {
+  0%,
+  19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%,
+  39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%,
+  59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%,
+  79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%,
+  99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+@-ms-keyframes position {
+  0%,
+  19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%,
+  39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%,
+  59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%,
+  79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%,
+  99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+@keyframes position {
+  0%,
+  19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%,
+  39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%,
+  59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%,
+  79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%,
+  99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+
+#debug {
+  font-family: monospace;
+  font-size: 2em;
+  color: #fff;
+  height: 40vh;
+  width: 100vw;
+  position: fixed;
+  top: 60vh;
+  left: 0;
+  background: rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+  list-style: none;
+  margin: 0;
+  padding: 1em 0;
+  -webkit-mask-image: -webkit-gradient(
+    linear,
+    left 15%,
+    left top,
+    from(rgba(0, 0, 0, 1)),
+    to(rgba(0, 0, 0, 0))
+  );
+  z-index: 1;
+  overflow: scroll;
+}
+#debug.hidden {
+  height: 0;
+  top: 100vh;
+}
